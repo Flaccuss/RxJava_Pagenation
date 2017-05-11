@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -28,6 +29,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.HttpException;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private CompositeDisposable compositeDisposable;
 
     private GitHubApi gitHubApi;
+    private String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,10 +96,21 @@ public class MainActivity extends AppCompatActivity {
                 .doOnNext(new Consumer<Response<List<User>>>() {
                     @Override
                     public void accept(Response<List<User>> gitHubUsers) throws Exception {
-                        mAdapter.setUsers(gitHubUsers.body());
+                        if (gitHubUsers.isSuccessful()) {
+                            mAdapter.setUsers(gitHubUsers.body());
+                        } else {
+                            Log.e(TAG, gitHubUsers.code() + " " + gitHubUsers.message());
+                        }
                         requestOnWay = false;
                         loadUser.setVisibility(View.INVISIBLE);
                     }
+                })
+                .doOnError(throwable -> {
+                    if (throwable instanceof HttpException) {
+                        Response<?> response = ((HttpException) throwable).response();
+                        Log.d(TAG, response.message());
+                    }
+
                 })
                 .subscribe();
 
