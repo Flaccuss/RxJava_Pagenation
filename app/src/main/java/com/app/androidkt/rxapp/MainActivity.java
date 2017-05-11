@@ -16,6 +16,7 @@ import com.app.androidkt.rxapp.datasource.remot.git.UserPagination;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,6 +28,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -81,17 +83,17 @@ public class MainActivity extends AppCompatActivity {
                     requestOnWay = true;
                     loadUser.setVisibility(View.VISIBLE);
                 })
-                .concatMap(new Function<Integer, Publisher<ArrayList<User>>>() {
+                .concatMap(new Function<Integer, Publisher<Response<List<User>>>>() {
                     @Override
-                    public Publisher<ArrayList<User>> apply(Integer fromId) throws Exception {
+                    public Publisher<Response<List<User>>> apply(Integer fromId) throws Exception {
                         return getUserList(fromId);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Consumer<ArrayList<User>>() {
+                .doOnNext(new Consumer<Response<List<User>>>() {
                     @Override
-                    public void accept(ArrayList<User> gitHubUsers) throws Exception {
-                        mAdapter.setUsers(gitHubUsers);
+                    public void accept(Response<List<User>> gitHubUsers) throws Exception {
+                        mAdapter.setUsers(gitHubUsers.body());
                         requestOnWay = false;
                         loadUser.setVisibility(View.INVISIBLE);
                     }
@@ -102,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         pagination.onNext(0);
     }
 
-    private Flowable<ArrayList<User>> getUserList(int fromId) {
+    private Flowable<Response<List<User>>> getUserList(int fromId) {
         return gitHubApi.getUser(fromId, Constants.PAGE_LIMIT)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());

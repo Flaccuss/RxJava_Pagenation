@@ -13,6 +13,7 @@ import com.app.androidkt.rxapp.datasource.remot.git.User;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,7 +56,7 @@ public class UserListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
 
-    public void setUsers(ArrayList<User> u) {
+    public void setUsers(List<User> u) {
         int count = getItemCount();
         users.addAll(u);
         notifyItemRangeInserted(count, u.size());
